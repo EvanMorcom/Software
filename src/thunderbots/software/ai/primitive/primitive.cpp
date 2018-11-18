@@ -24,6 +24,8 @@ std::unique_ptr<Primitive> Primitive::createPrimitive(
 {
     std::unique_ptr<Primitive> prim_ptr;
 
+    // NOTE: If-else block used here because primitive_msg.primitive_name is a string.
+    // This block needs to be updated when a new primitive is added.
     if (primitive_msg.primitive_name == MovePrimitive::PRIMITIVE_NAME)
     {
         prim_ptr = std::make_unique<MovePrimitive>(primitive_msg);
