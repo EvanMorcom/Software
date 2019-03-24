@@ -128,7 +128,7 @@ double lensq(const Line &line)
     return std::numeric_limits<double>::infinity();
 }
 
-bool contains(const Triangle &out, const Vector &in)
+bool contains(const LegacyTriangle &out, const Vector &in)
 {
     double angle = 0;
     for (int i = 0, j = 2; i < 3; j = i++)
@@ -183,14 +183,14 @@ bool contains(const Rectangle &out, const Vector &in)
     return out.containsPoint(in);
 }
 
-bool intersects(const Triangle &first, const Circle &second)
+bool intersects(const LegacyTriangle &first, const Circle &second)
 {
     return contains(first, second.getOrigin()) ||
            dist(getSide(first, 0), second.getOrigin()) < second.getRadius() ||
            dist(getSide(first, 1), second.getOrigin()) < second.getRadius() ||
            dist(getSide(first, 2), second.getOrigin()) < second.getRadius();
 }
-bool intersects(const Circle &first, const Triangle &second)
+bool intersects(const Circle &first, const LegacyTriangle &second)
 {
     return intersects(second, first);
 }
@@ -266,7 +266,7 @@ bool intersects(const Segment &first, const Segment &second)
 }
 
 template <size_t N>
-Vector getVertex(const Poly<N> &poly, unsigned int i)
+Vector getVertex(const LegacyPolygon<N> &poly, unsigned int i)
 {
     if (i > N)
         throw std::out_of_range("poly does not have that many sides!!!");
@@ -275,7 +275,7 @@ Vector getVertex(const Poly<N> &poly, unsigned int i)
 }
 
 template <size_t N>
-void setVertex(Poly<N> &poly, unsigned int i, const Vector &v)
+void setVertex(LegacyPolygon<N> &poly, unsigned int i, const Vector &v)
 {
     if (i > N)
         throw std::out_of_range("poly does not have that many sides!!!");
@@ -284,7 +284,7 @@ void setVertex(Poly<N> &poly, unsigned int i, const Vector &v)
 }
 
 template <size_t N>
-Segment getSide(const Poly<N> &poly, unsigned int i)
+Segment getSide(const LegacyPolygon<N> &poly, unsigned int i)
 {
     return Segment(getVertex(poly, i), getVertex(poly, (i + 1) % N));
 }
@@ -624,6 +624,35 @@ Vector closestPointOnSeg(const Vector &centre, const Vector &segA, const Vector 
     return segB;
 }
 
+Vector closestPointOnLine(const Vector &centre, const Vector &lineA, const Vector &lineB)
+{
+    // find point C, the projection onto the line
+    double len_line = (lineB - lineA).dot(centre - lineA) / (lineB - lineA).len();
+    Vector C        = lineA + len_line * (lineB - lineA).norm();
+    return C;
+
+    // check if C is in the line range
+    double AC     = (lineA - C).lensq();
+    double BC     = (lineB - C).lensq();
+    double AB     = (lineA - lineB).lensq();
+    bool in_range = AC <= AB && BC <= AB;
+
+    // if so return C
+    if (in_range)
+    {
+    }
+
+    double lenA = (centre - lineA).len();
+    double lenB = (centre - lineB).len();
+
+    // otherwise return closest end of line-seg
+    if (lenA < lenB)
+    {
+        return lineA;
+    }
+    return lineB;
+}
+
 namespace
 {
     std::vector<Vector> lineseg_circle_intersect(const Vector &centre, double radius,
@@ -855,7 +884,7 @@ double offsetToLine(Vector x0, Vector x1, Vector p)
     // get normal to line
     n = (x1 - x0).perp().norm();
 
-    return n.dot(p - x0);
+    return fabs(n.dot(p - x0));
 }
 
 double offsetAlongLine(Vector x0, Vector x1, Vector p)
