@@ -22,12 +22,11 @@ public:
     std::string getName() const override;
 
     /**
-     * Updates the parameters for this PasserTactic.
+     * Updates the parameters for this PenaltyKickTactic.
      *
-     * @param pass The pass to perform
      * @param updated_ball The ball we're passing
      */
-    void updateParams(const AI::Passing::Pass& updated_pass, const Ball& updated_ball);
+    void updateParams(const Ball& updated_ball, const Robot& enemy_goalie);
 
     /**
      * Calculates the cost of assigning the given robot to this Tactic. Prefers robots
@@ -44,6 +43,6 @@ private:
     void calculateNextIntent(IntentCoroutine::push_type& yield) override;
 
     // Tactic parameters
-    AI::Passing::Pass pass;
+    Robot enemy_goalie;
     Ball ball;
 };
