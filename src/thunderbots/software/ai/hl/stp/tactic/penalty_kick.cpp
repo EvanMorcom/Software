@@ -64,6 +64,11 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
 
 
     //TODO: GET CLOSE AND RUN THE DRIBBLER (BETTER DEAKING)
+    // WHERE DO WE WANT TO GO? We want to get as close to the net was possible without losing the ball
+    // If we see a good shot we want to take it
+    // Approach 1 corner of the net
+    // Aim between goalposts looking for an opening (we should have the highest chance of scoring in these positions)
+
     //move_action.
 
     //TODO: We need to be running the dribbler (perhaps make slight deak-y moves)
