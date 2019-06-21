@@ -6,8 +6,8 @@
 /**
  * This tactic is for a robot performing a penalty kick.
  */
-class PenaltyKickTactic : public Tactic
-{
+
+class PenaltyKickTactic : public Tactic {
 public:
     /**
      * Creates a new PenaltyKickTactic
@@ -17,7 +17,7 @@ public:
      * @param loop_forever Whether or not this Tactic should never complete. If true, the
      * tactic will be restarted every time it completes
      */
-    explicit PenaltyKickTactic(const Ball& ball, bool loop_forever = false);
+    explicit PenaltyKickTactic(const Ball& ball, const Field& field, const Robot& enemy_goalie, bool loop_forever = false);
 
     std::string getName() const override;
 
@@ -26,7 +26,7 @@ public:
      *
      * @param updated_ball The ball we're passing
      */
-    void updateParams(const Ball& updated_ball, const Robot& enemy_goalie);
+    void updateParams(const Ball &updated_ball, const Robot &enemy_goalie, const Field &field);
 
     /**
      * Calculates the cost of assigning the given robot to this Tactic. Prefers robots
@@ -37,12 +37,14 @@ public:
      * @return A cost in the range [0,1] indicating the cost of assigning the given robot
      * to this tactic. Lower cost values indicate a more preferred robot.
      */
-    double calculateRobotCost(const Robot& robot, const World& world) override;
+    double calculateRobotCost(const Robot &robot, const World &world) override;
 
 private:
-    void calculateNextIntent(IntentCoroutine::push_type& yield) override;
+    void calculateNextIntent(IntentCoroutine::push_type &yield) override;
 
     // Tactic parameters
     Robot enemy_goalie;
     Ball ball;
+    Field field;
 };
+

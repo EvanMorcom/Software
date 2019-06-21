@@ -609,6 +609,7 @@ if (CATKIN_ENABLE_TESTING)
             ai/hl/stp/tactic/cherry_pick_tactic.cpp
             ai/hl/stp/tactic/move_tactic.cpp
             ai/hl/stp/tactic/passer_tactic.cpp
+            ai/hl/stp/tactic/penalty_kick.cpp
             ai/hl/stp/tactic/receiver_tactic.cpp
             ai/hl/stp/tactic/stop_tactic.cpp
             ai/hl/stp/tactic/tactic.cpp
