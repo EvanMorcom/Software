@@ -46,5 +46,9 @@ private:
     Robot enemy_goalie;
     Ball ball;
     Field field;
+
+    const bool ENABLE_DRIBBLER = true;
+
+    const Duration penalty_shot_timeout = Duration::fromSeconds(10);
 };
 
