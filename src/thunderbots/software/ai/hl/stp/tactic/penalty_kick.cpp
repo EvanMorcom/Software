@@ -38,8 +38,15 @@ double PenaltyKickTactic::calculateRobotCost(const Robot& robot, const World& wo
     return std::clamp<double>(cost, 0, 1);
 }
 
+std::optional<std::pair<Point, Angle>> PenaltyKickTactic::evaluate_penalty_shot() {
+
+}
+
 void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
 {
+
+    // Keep track if a shot has been taken
+    bool shot_taken = false;
 
     // We will need to keep track of time so we don't break the rules by taking too long
     Timestamp penalty_kick_start = robot->getMostRecentTimestamp();
@@ -81,13 +88,50 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
     }
 
     // Step 3: Now we want to 'juke' out the enemy goalie with movement
-    while( (penalty_kick_start - robot->getMostRecentTimestamp()) < penalty_shot_timeout ) {
+    while( ((penalty_kick_start - robot->getMostRecentTimestamp()) < penalty_shot_timeout) && !shot_taken ) {
+
+        // Grab the angle between the robot and the left/right enemy goal posts to shoot between
+        Angle robot_to_neg_post = (field.enemyGoalpostNeg() - robot.value().position()).orientation();
+        Angle robot_to_pos_post = (field.enemyGoalpostPos() - robot.value().position()).orientation();
+
+        // We want to alternate between the positive and negative goal posts to juke out the enemy goalie
+        bool is_facing_negative_post = false;
 
         // Evaluate shots using only the enemy goalie and shooter
-        std::optional<std::pair<Point, Angle>> best_shot_data = Evaluation::calcBestShotOnEnemyGoal(field, Team(Duration::fromSeconds(20), { *robot }), Team(Duration::fromSeconds(20), {enemy_goalie}), *robot);
+        std::optional<std::pair<Point, Angle>> best_shot_data = evaluate_penalty_shot();
 
         // If we have a solid shot on net TODO: Make this work better for goal shots (we want to shot as FAR away from enemy goalie as possible (Make my own function?
         if( best_shot_data.has_value() && (best_shot_data.value().second > Angle::ofDegrees(30.0)) ) {
+
+            KickAction kick_action = KickAction();
+
+            // Wait for kick to execute
+            while(!kick_action.done()) {
+
+                yield(kick_action.updateStateAndGetNextIntent(
+                        *robot, ball, ball.position(), best_shot_data.value().first , 5.0 ));
+            }
+        }
+
+        // If we didn't get a good shot, keep looking
+        else {
+
+            // TODO: This can be made into a conditional statement
+            if(is_facing_negative_post) {
+                // Dribble-rotate to point at positive post
+
+                // Yield to dribble here
+
+                is_facing_negative_post = false;
+            }
+            else {
+                // Dribble-rotate to negative post
+
+                // Yield to dribble here
+
+                is_facing_negative_post = true;
+            }
+
 
         }
 
