@@ -43,7 +43,7 @@ private:
     void calculateNextIntent(IntentCoroutine::push_type &yield) override;
 
     // Evaluation function designed specifically for 1-on-1 penalty shots
-    std::optional<std::pair<Point, Angle>> evaluate_penalty_shot();
+    Angle evaluate_penalty_shot();
 
     // Tactic parameters
     Robot enemy_goalie;
