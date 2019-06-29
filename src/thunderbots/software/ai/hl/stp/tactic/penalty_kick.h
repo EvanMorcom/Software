@@ -52,7 +52,7 @@ private:
 
     const bool ENABLE_DRIBBLER = true;
 
-    constexpr double PENALTY_KICK_SHOT_SPEED = 5.0;
+    static constexpr double PENALTY_KICK_SHOT_SPEED = 5.0;
 
     const Duration penalty_shot_timeout = Duration::fromSeconds(10);
 };
