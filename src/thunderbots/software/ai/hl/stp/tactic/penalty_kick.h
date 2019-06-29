@@ -17,7 +17,7 @@ public:
      * @param loop_forever Whether or not this Tactic should never complete. If true, the
      * tactic will be restarted every time it completes
      */
-    explicit PenaltyKickTactic(const Ball& ball, const Field& field, const Robot& enemy_goalie, bool loop_forever = false);
+    explicit PenaltyKickTactic(const Ball& ball, const Field& field, const std::optional<Robot>& enemy_goalie, bool loop_forever = false);
 
     std::string getName() const override;
 
@@ -26,7 +26,7 @@ public:
      *
      * @param updated_ball The ball we're passing
      */
-    void updateParams(const Ball &updated_ball, const Robot &enemy_goalie, const Field &field);
+    void updateParams(const Ball &updated_ball, const std::optional<Robot>& enemy_goalie, const Field &field);
 
     /**
      * Calculates the cost of assigning the given robot to this Tactic. Prefers robots
@@ -46,11 +46,13 @@ private:
     Angle evaluate_penalty_shot();
 
     // Tactic parameters
-    Robot enemy_goalie;
+    std::optional<Robot> enemy_goalie;
     Ball ball;
     Field field;
 
     const bool ENABLE_DRIBBLER = true;
+
+    constexpr double PENALTY_KICK_SHOT_SPEED = 5.0;
 
     const Duration penalty_shot_timeout = Duration::fromSeconds(10);
 };

@@ -23,8 +23,7 @@ bool PenaltyKickPlay::invariantHolds(const World &world) const
 
 void PenaltyKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
 {
-    // Create MoveTactics that will loop forever
-    auto penalty_shot_tactic = std::make_shared<PenaltyKickTactic>(world.ball(), world.field(), world.enemyTeam().goalie().value());
+    auto penalty_shot_tactic = std::make_shared<PenaltyKickTactic>(world.ball(), world.field(), world.enemyTeam().goalie(), true);
 
     auto move_tactic_2 = std::make_shared<MoveTactic>(true);
     auto move_tactic_3 = std::make_shared<MoveTactic>(true);
@@ -38,7 +37,7 @@ void PenaltyKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
         Angle angle_between_robots = Angle::full() / world.friendlyTeam().numRobots();
 
         // Move the robots in a circle around the ball, facing the ball
-        penalty_shot_tactic->updateParams(world.ball(), world.enemyTeam().goalie().value(), world.field());
+        penalty_shot_tactic->updateParams(world.ball(), world.enemyTeam().goalie(), world.field());
 
         move_tactic_2->updateParams(
                 world.ball().position() + Point::createFromAngle(angle_between_robots * 2),

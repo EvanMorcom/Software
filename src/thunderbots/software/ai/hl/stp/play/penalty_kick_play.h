@@ -3,7 +3,7 @@
 #include "ai/hl/stp/play/play.h"
 
 /**
- * An example Play that moves the robots in a circle around the ball
+ * Play for shooting penalty kicks
  */
 class PenaltyKickPlay : public Play
 {
