@@ -24,26 +24,30 @@ std::string GoalieTactic::getName() const
     return "Goalie Tactic";
 }
 
-void GoalieTactic::updateParams(
-    const Ball &ball, const Field &field, const Team &friendly_team,
-    const Team &enemy_team, const std::optional<Evaluation::EnemyThreat> &enemy_threat)
+void GoalieTactic::updateParams(const Ball &ball, const Field &field,
+                                const Team &friendly_team, const Team &enemy_team)
 {
     // Update the parameters stored by this Tactic
     this->ball          = ball;
     this->field         = field;
     this->friendly_team = friendly_team;
     this->enemy_team    = enemy_team;
-    this->enemy_threat  = enemy_threat;
 }
 
 double GoalieTactic::calculateRobotCost(const Robot &robot, const World &world)
 {
-    // Prefer robots closer to the destination
-    // We normalize with the total field length so that robots that are within the field
-    // have a cost less than 1
-    double cost = (robot.position() - world.field().friendlyGoal()).len() /
-                  world.field().totalLength();
-    return std::clamp<double>(cost, 0, 1);
+    // Strongly prefer the robot assigned to be the goalie.
+    // TODO: This is a hack to "ensure" the right robot will be assigned. We should
+    // normally return values in the range [0, 1]
+    if (world.friendlyTeam().getGoalieID() &&
+        robot.id() == world.friendlyTeam().getGoalieID().value())
+    {
+        return 0.0;
+    }
+    else
+    {
+        return 1000000;
+    }
 }
 
 void GoalieTactic::calculateNextIntent(IntentCoroutine::push_type &yield)
@@ -89,7 +93,7 @@ void GoalieTactic::calculateNextIntent(IntentCoroutine::push_type &yield)
                 *robot, ball, ball.position(),
                 (ball.position() - field.friendlyGoal()).orientation(), 2);
         }
-        else if (enemy_threat.has_value())
+        else
         {
             // If we have been provided with enemy threat information, use it to
             // preemptively block their best shot. Calculate the best shot the enemy could
@@ -99,8 +103,8 @@ void GoalieTactic::calculateNextIntent(IntentCoroutine::push_type &yield)
                 ROBOT_MAX_RADIUS_METERS, {*robot});
             if (best_shot.has_value())
             {
-                Vector shot_vector = (best_shot->first - enemy_threat->robot.position());
-                Ray shot_ray       = Ray(enemy_threat->robot.position(), shot_vector);
+                Vector shot_vector = best_shot->first - ball.position();
+                Ray shot_ray       = Ray(ball.position(), shot_vector);
                 auto [best_shot_intersection_1, best_shot_intersection_2] =
                     raySegmentIntersection(shot_ray, full_goal_segment);
 
@@ -111,10 +115,10 @@ void GoalieTactic::calculateNextIntent(IntentCoroutine::push_type &yield)
                                                    goalie_movement_segment);
                 }
             }
-
-            next_intent = move_action.updateStateAndGetNextIntent(
-                *robot, goalie_pos, goalie_orientation, 0.0, false, AUTOCHIP);
         }
+
+        next_intent = move_action.updateStateAndGetNextIntent(
+            *robot, goalie_pos, goalie_orientation, 0.0, false, AUTOCHIP);
 
         yield(std::move(next_intent));
 
