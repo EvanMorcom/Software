@@ -143,7 +143,6 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
     MoveAction rotate_with_ball_move_act =
         MoveAction(MoveAction::ROBOT_CLOSE_TO_DEST_THRESHOLD, false);
     KickAction kick_action       = KickAction();
-    DribbleAction dribble_action = DribbleAction();
 
     do
     {
@@ -165,27 +164,30 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
         {
             if (evaluate_penalty_shot())
             {
+                printf("\nTryingToSHoot");
                 yield(kick_action.updateStateAndGetNextIntent(
                     *robot, ball, ball.position(), robot.value().orientation(),
                     PENALTY_KICK_SHOT_SPEED));
             }
         }
-        else if ((robot.value().position() - ball.position()).len() >
-                     MoveAction::ROBOT_CLOSE_TO_DEST_THRESHOLD ||
-                 (robot.value()
-                      .orientation()
-                      .minDiff((-behind_ball_vector).orientation())
-                      .toDegrees() < 3.0))
+        else if (!approach_ball_move_act.done())
         {
             // The default behaviour is to move behind the ball and face the net
+            printf("\nDistanceFromBall=%f", (ball.position() - robot->position()).len());
+            printf("\nWhatWereSupposedToBe=%f", (behind_ball - robot->position()).len());
+            printf("\nDegreesOff=%f", robot.value()
+                    .orientation()
+                    .minDiff((-behind_ball_vector).orientation())
+                    .toDegrees() );
+            printf("\nTryingToMove");
             yield(approach_ball_move_act.updateStateAndGetNextIntent(
-                *robot, behind_ball, (-behind_ball_vector).orientation(), 0));
+                *robot, behind_ball, (-behind_ball_vector).orientation(), 0, true));
         }
         else
         {
             const Point next_shot_position = evaluate_next_position();
             const Angle next_angle = (next_shot_position - ball.position()).orientation();
-
+            printf("\nTryingToRotate");
             yield(rotate_with_ball_move_act.updateStateAndGetNextIntent(
                 *robot, robot.value().position(), next_angle, 0, true));
         }
