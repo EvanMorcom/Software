@@ -145,7 +145,7 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
         MoveAction(MoveAction::ROBOT_CLOSE_TO_DEST_THRESHOLD, false);
     KickAction kick_action       = KickAction();
     ChipAction chip_action = ChipAction();
-    DribbleAction dribble_action = DribbleAction();
+
 
     do
     {
@@ -173,6 +173,7 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
                 chip_action.updateStateAndGetNextIntent(
                         *robot, ball, ball.position(), robot.value().orientation(),
                         PENALTY_KICK_SHOT_SPEED);
+
             }
         }
         else if ((robot.value().position() - ball.position()).len() >
