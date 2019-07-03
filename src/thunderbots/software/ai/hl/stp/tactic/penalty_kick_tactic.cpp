@@ -167,6 +167,7 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
         {
             if (evaluate_penalty_shot())
             {
+                printf("\nShooting");
 //                yield(kick_action.updateStateAndGetNextIntent(
 //                    *robot, ball, ball.position(), robot.value().orientation(),
 //                    PENALTY_KICK_SHOT_SPEED));
@@ -183,6 +184,7 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
                       .minDiff((-behind_ball_vector).orientation())
                       .toDegrees() < 3.0))
         {
+            printf("\nGetting behind ball");
             // The default behaviour is to move behind the ball and face the net
             yield(approach_ball_move_act.updateStateAndGetNextIntent(
                 *robot, behind_ball, (-behind_ball_vector).orientation(), 0));
@@ -191,7 +193,7 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
         {
             const Point next_shot_position = evaluate_next_position();
             const Angle next_angle = (next_shot_position - ball.position()).orientation();
-
+            printf("\nLooking for shot");
             yield(rotate_with_ball_move_act.updateStateAndGetNextIntent(
                 *robot, robot.value().position(), next_angle, 0, true));
         }
