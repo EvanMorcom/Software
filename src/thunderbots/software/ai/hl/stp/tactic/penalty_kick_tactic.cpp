@@ -70,7 +70,7 @@ bool PenaltyKickTactic::evaluate_penalty_shot()
         const double shooter_to_goal_distance =
             (robot.value().position() - intersect_1.value()).len();
         const double time_to_score =
-            fabs(shooter_to_goal_distance / PENALTY_KICK_SHOT_SPEED);
+            fabs(shooter_to_goal_distance / PENALTY_KICK_SHOT_SPEED) - SSL_VISION_DELAY; // Include the vision delay in our penalty shot calculations
         const Point goalie_to_goal_distance =
             (intersect_1.value() = enemy_goalie.value().position());
 
