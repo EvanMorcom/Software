@@ -5,6 +5,7 @@
 
 #include "ai/hl/stp/action/dribble_action.h"
 #include "ai/hl/stp/action/kick_action.h"
+#include "ai/hl/stp/action/chip_action.h"
 #include "ai/hl/stp/action/move_action.h"
 #include "ai/hl/stp/evaluation/calc_best_shot.h"
 #include "geom/util.h"
@@ -143,6 +144,7 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
     MoveAction rotate_with_ball_move_act =
         MoveAction(MoveAction::ROBOT_CLOSE_TO_DEST_THRESHOLD, false);
     KickAction kick_action       = KickAction();
+    ChipAction chip_action = ChipAction();
     DribbleAction dribble_action = DribbleAction();
 
     do
@@ -165,9 +167,12 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
         {
             if (evaluate_penalty_shot())
             {
-                yield(kick_action.updateStateAndGetNextIntent(
-                    *robot, ball, ball.position(), robot.value().orientation(),
-                    PENALTY_KICK_SHOT_SPEED));
+//                yield(kick_action.updateStateAndGetNextIntent(
+//                    *robot, ball, ball.position(), robot.value().orientation(),
+//                    PENALTY_KICK_SHOT_SPEED));
+                chip_action.updateStateAndGetNextIntent(
+                        *robot, ball, ball.position(), robot.value().orientation(),
+                        PENALTY_KICK_SHOT_SPEED);
             }
         }
         else if ((robot.value().position() - ball.position()).len() >
@@ -191,6 +196,6 @@ void PenaltyKickTactic::calculateNextIntent(IntentCoroutine::push_type& yield)
         }
 
     } while (
-        !(kick_action.done() ||
+        !(kick_action.done() || !(chip_action.done()) ||
           (penalty_kick_start - robot->getMostRecentTimestamp()) < penalty_shot_timeout));
 }
