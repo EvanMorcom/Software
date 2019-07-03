@@ -42,6 +42,10 @@ void PenaltyKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
     auto penalty_shot_tactic = std::make_shared<PenaltyKickTactic>(
         world.ball(), world.field(), world.enemyTeam().goalie(), true);
 
+    // Allow the penalty shooter to go into the enemy defence area and close to the ball
+    penalty_shot_tactic->addWhitelistedAvoidArea(AvoidArea::HALF_METER_AROUND_BALL);
+    penalty_shot_tactic->addWhitelistedAvoidArea(AvoidArea::ENEMY_DEFENSE_AREA);
+
     auto move_tactic_2 = std::make_shared<MoveTactic>(true);
     auto move_tactic_3 = std::make_shared<MoveTactic>(true);
     auto move_tactic_4 = std::make_shared<MoveTactic>(true);
@@ -53,7 +57,7 @@ void PenaltyKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
         // Assign one robot to be the penalty shooter
         penalty_shot_tactic->updateParams(world.ball(), world.enemyTeam().goalie(),
                                           world.field());
-        penalty_shot_tactic->addWhitelistedAvoidArea(AvoidArea::HALF_METER_AROUND_BALL);
+
 
         // Move all non-shooter robots to the center of the field
         move_tactic_2->updateParams(Point(0, 0), world.field().enemyGoal().orientation(),

@@ -130,7 +130,7 @@ void PathPlanningNavigator::visit(const MoveIntent &move_intent)
     }
 
     // TODO: should we be using velocity scaling here?
-    obstacles.push_back(Obstacle::createBallObstacle(world.ball(), 0.06, 0));
+    obstacles.push_back(Obstacle::createBallObstacle(world.ball(), 0.0, 0));
 
     auto path_planner =
         std::make_unique<ThetaStarPathPlanner>(this->world.field(), obstacles);

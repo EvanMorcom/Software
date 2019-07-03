@@ -66,5 +66,6 @@ class PenaltyKickTactic : public Tactic
     static constexpr double PENALTY_KICK_GOALIE_MAX_ACC = 2.0;
     static constexpr double SSL_VISION_DELAY = 0.30; // Vision delay is roughly 0.3 seconds
 
+
     const Duration penalty_shot_timeout = Duration::fromSeconds(10);
 };
