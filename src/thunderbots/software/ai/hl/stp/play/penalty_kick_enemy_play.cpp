@@ -3,10 +3,10 @@
 #include "ai/hl/stp/play/play_factory.h"
 #include "ai/hl/stp/tactic/goalie_tactic.h"
 #include "ai/hl/stp/tactic/move_tactic.h"
+#include "ai/hl/stp/tactic/penalty_goalie.cpp"
 #include "shared/constants.h"
 
 const std::string PenaltyKickEnemyPlay::name = "Penalty Kick Enemy Play";
-
 std::string PenaltyKickEnemyPlay::getName() const
 {
     return PenaltyKickEnemyPlay::name;
@@ -24,7 +24,7 @@ bool PenaltyKickEnemyPlay::invariantHolds(const World &world) const
 
 void PenaltyKickEnemyPlay::getNextTactics(TacticCoroutine::push_type &yield)
 {
-    auto goalie_tactic = std::make_shared<GoalieTactic>(
+    auto goalie_tactic = std::make_shared<PenaltyGoalieTactic>(
         world.ball(), world.field(), world.friendlyTeam(), world.enemyTeam());
 
     auto move_tactic_2 = std::make_shared<MoveTactic>(true);
