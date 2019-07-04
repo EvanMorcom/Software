@@ -19,7 +19,7 @@ using namespace Passing;
 
 const std::string CornerKickPlay::name = "Corner Kick Play";
 
-CornerKickPlay::CornerKickPlay() : MAX_TIME_TO_COMMIT_TO_PASS(Duration::fromSeconds(5)) {}
+CornerKickPlay::CornerKickPlay() : MAX_TIME_TO_COMMIT_TO_PASS(Duration::fromSeconds(5)) {is_done = false;}
 
 std::string CornerKickPlay::getName() const
 {
@@ -28,18 +28,28 @@ std::string CornerKickPlay::getName() const
 
 bool CornerKickPlay::isApplicable(const World &world) const
 {
+<<<<<<< HEAD
     return (world.gameState().isOurDirectFree() ||
             world.gameState().isOurIndirectFree()) &&
            !world.gameState().isPlaying() &&
            Evaluation::ballInEnemyCorner(world.field(), world.ball(),
                                          BALL_IN_CORNER_RADIUS);
+=======
+    // use this play for corner kicks (friendly direct on enemy field side)
+    return world.gameState().isOurDirectFree() &&
+            world.ball().position().x() > 0;
+>>>>>>> 920713835a449a9866514738a9fdc7988e6c408b
 }
 
 bool CornerKickPlay::invariantHolds(const World &world) const
 {
+<<<<<<< HEAD
     return isApplicable(world) ||
            (world.gameState().isPlaying() &&
             Evaluation::teamHasPossession(world.enemyTeam(), world.ball()));
+=======
+    return (isApplicable(world) || (world.gameState().isPlaying() && Evaluation::teamHasPossession(world.enemyTeam(), world.ball()))) && !is_done;
+>>>>>>> 920713835a449a9866514738a9fdc7988e6c408b
 }
 
 void CornerKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
@@ -201,12 +211,8 @@ void CornerKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
     LOG(DEBUG) << "Committing to pass: " << best_pass_and_score_so_far.first;
     LOG(DEBUG) << "Score of pass we committed to: " << best_pass_and_score_so_far.second;
 
-    // Destruct the PassGenerator and CherryPick tactics (which contain a PassGenerator
-    // each) to save a significant number of CPU cycles
-    // TODO: stop the PassGenerators here instead of destructing them (Issue #636)
-    pass_generator.~PassGenerator();
-    cherry_pick_tactic_pos_y->~CherryPickTactic();
-    cherry_pick_tactic_neg_y->~CherryPickTactic();
+    // TODO (Issue #636): We should stop the PassGenerator and Cherry-pick tactic here
+    //                    to save CPU cycles
 
     // Perform the pass and wait until the receiver is finished
     auto passer = std::make_shared<PasserTactic>(pass, world.ball(), false);
@@ -225,6 +231,7 @@ void CornerKickPlay::getNextTactics(TacticCoroutine::push_type &yield)
         yield({goalie_tactic, passer, receiver, bait_move_tactic_1, bait_move_tactic_2});
     } while (!receiver->done());
 
+    is_done = true;
     LOG(DEBUG) << "Finished";
 }
 

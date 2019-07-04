@@ -17,7 +17,9 @@
 #include "ai/world/game_state.h"
 #include "shared/constants.h"
 #include "util/parameter/dynamic_parameters.h"
+#include "ai/hl/stp/evaluation/possession.h"
 
+#include "ai/hl/stp/evaluation/ball.h"
 using namespace Evaluation;
 
 const std::string ShootOrChipPlay::name = "ShootOrChip Play";
@@ -33,6 +35,7 @@ bool ShootOrChipPlay::isApplicable(const World &world) const
 {
     return world.gameState().isPlaying() &&
            Evaluation::teamHasPossession(world.friendlyTeam(), world.ball());
+
 }
 
 bool ShootOrChipPlay::invariantHolds(const World &world) const
