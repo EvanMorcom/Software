@@ -7,7 +7,7 @@
     9000  // The maximum size of the array containing trajectory elements. Assuming the
           // longest possible path is 9 meters with 1mm segments
 
-typedef struct FirmwareRobotPathParameters
+typedef struct FirmwareRobotTrajectoryParameters
 {
     // The 2D polynomial representation of the path to be followed
     Polynomial2dOrder3_t path;
@@ -26,27 +26,38 @@ typedef struct FirmwareRobotPathParameters
     //  point along the trajectory. This factor limits the maximum delta-velocity
     // and
     //  also the max speed around curves due to centripetal acceleration [m/s^2]
-    float max_allowable_acceleration;
+    float max_allowable_linear_acceleration;
     // The maximum speed allowable at any point along the trajectory```
-    float max_allowable_speed;
+    float max_allowable_linear_speed;
     // The initial speed at the start of the trajectory [m/s]
-    float initial_speed;
+    float initial_linear_speed;
     // The final speed at the end of the trajectory [m/s]
-    float final_speed;
-} FirmwareRobotPathParameters_t;
+    float final_linear_speed;
+    // The polynomial defining the orientation of the robot
+    // the polynomial is parameterized the same as the path
+    // such that the initial orientation is at t_start and the final
+    // orientation is at t_end
+    Polynomial1dOrder3_t orientation_profile;  // [radians]
+    // The maximum allowable angular acceleration that can be experienced by the robot
+    float max_allowable_angular_acceleration;  // [radians/s^2]
+    // The maximum allowable angular speed allowable // [radians/s]
+    float max_allowable_angular_speed;
+
+} FirmwareRobotTrajectoryParameters_t;
 
 // Struct that defines a single point on a trajectory
 // Includes the Position and Time data corresponding to that point
 typedef struct PositionTrajectoryElement
 {
     Vector2d_t position;
+    float orientation;
     float time;
 } PositionTrajectoryElement_t;
 
 typedef struct PositionTrajectory
 {
     PositionTrajectoryElement_t* trajectory_elements;
-    FirmwareRobotPathParameters_t path_parameters;
+    FirmwareRobotTrajectoryParameters_t path_parameters;
     float* speed_profile;
 } PositionTrajectory_t;
 
@@ -62,7 +73,7 @@ typedef struct VelocityTrajectoryElement
 typedef struct VelocityTrajectory
 {
     VelocityTrajectoryElement_t* trajectory_elements;
-    FirmwareRobotPathParameters_t path_parameters;
+    FirmwareRobotTrajectoryParameters_t path_parameters;
 } VelocityTrajectory_t;
 
 typedef enum TrajectoryPlannerGenerationStatus
@@ -84,14 +95,14 @@ typedef enum TrajectoryPlannerGenerationStatus
  *  Key assumptions & guarantees of this planner are:
  *  - Trajectories are time-optimal assuming INFINITE JERK capability of the robot
  *
- *  - No speed on the trajectory is larger than the 'max_allowable_speed' parameter
+ *  - No speed on the trajectory is larger than the 'max_allowable_linear_speed' parameter
  *
  *  - No acceleration value between points on the trajectory can be larger than the
- * 'max_allowable_acceleration' input parameter
+ * 'max_allowable_linear_acceleration' input parameter
  *
  *  - Assuming the grip-limit of the robot IS THE SAME AS THE MAX ACCELERATION then at no
  * point on the path can the sum of centripetal and acceleration force be greater than
- * 'max_allowable_acceleration'
+ * 'max_allowable_linear_acceleration'
  *
  *  PositionTrajectory generation is done by assuming constant acceleration capability.
  *      - The generator will assume maximum acceleration for the robot between each
@@ -107,15 +118,15 @@ typedef enum TrajectoryPlannerGenerationStatus
  *
  * @pre path_parameters.num_segments > 2 and num_segments <=
  * TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS
- * @pre path_parameters.max_allowable_acceleration > 0
- * @pre path_parameters.max_allowable_speed > 0
+ * @pre path_parameters.max_allowable_linear_acceleration > 0
+ * @pre path_parameters.max_allowable_linear_speed > 0
  * @pre path_parameters.init_speed >= 0
- * @pre path_parameters.final_speed >= 0
+ * @pre path_parameters.final_linear_speed >= 0
  * @pre The trajectory.trajectory_elements[] array is pre-allocated to handle up to the
  * TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS limit
  *
  * @param path_parameters [in] The data structure including important path parameters as
- * defined by the FirmwareRobotPathParameters struct
+ * defined by the FirmwareRobotTrajectoryParameters struct
  * @param trajectory [out] The planned trajectory that follows robot dynamics limitations
  * with the appropriate guarantees and assumptions outlines above
  *
@@ -209,7 +220,7 @@ void app_trajectory_planner_getMaxAllowableSpeedProfile(
  * not guarantee a feasible path to follow.
  *
  * NOTE: The velocity_profile will contain the same number of elements as the input
- * max_allowable_speed[] array
+ * max_allowable_linear_speed[] array
  *
  * @pre The velocity_profile array is pre-allocated to contain up to at least
  * TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS elements

@@ -17,11 +17,12 @@ app_trajectory_planner_generateConstantArcLengthPositionTrajectory(
     // Set the internal path parameter variables
     PositionTrajectoryElement_t* traj_elements = trajectory->trajectory_elements;
 
-    float final_speed   = trajectory->path_parameters.final_speed;
-    float initial_speed = trajectory->path_parameters.initial_speed;
+    float final_speed   = trajectory->path_parameters.final_linear_speed;
+    float initial_speed = trajectory->path_parameters.initial_linear_speed;
     const float max_allowable_acceleration =
-        trajectory->path_parameters.max_allowable_acceleration;
-    const float max_allowable_speed = trajectory->path_parameters.max_allowable_speed;
+        trajectory->path_parameters.max_allowable_linear_acceleration;
+    const float max_allowable_speed =
+        trajectory->path_parameters.max_allowable_linear_speed;
     const unsigned int num_segments = trajectory->path_parameters.num_segments;
     const Polynomial2dOrder3_t path = trajectory->path_parameters.path;
     float t_end                     = trajectory->path_parameters.t_end;
