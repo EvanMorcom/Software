@@ -70,6 +70,13 @@ typedef struct VelocityTrajectoryElement
     float time;
 } VelocityTrajectoryElement_t;
 
+typedef struct OrientationTrajectoryElement
+{
+    float orientation;
+    float angular_velocity;
+    float time;
+} OrientationTrajectoryElement_t;
+
 typedef struct VelocityTrajectory
 {
     VelocityTrajectoryElement_t* trajectory_elements;
@@ -181,7 +188,7 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
  */
 static void app_trajectory_planner_generateConstArclengthTrajectoryPositions(
     PositionTrajectoryElement_t traj_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
-    Polynomial2dOrder3_t path, const unsigned int num_elements,
+    Polynomial2dOrder3_t path, Polynomial1dOrder3_t orientation_profile,const unsigned int num_elements,
     ArcLengthParametrization_t arc_length_parameterization,
     const float arc_segment_length);
 
@@ -271,7 +278,7 @@ void app_trajectory_planner_generateBackwardsContinuousVelocityProfile(
 /**
  *  Adds a time profile to an existing position profile for the given input parameters
  *
- *  @pre traj_elements must be pre-allocated and contain all of the position data of the
+ * @pre traj_elements must be pre-allocated and contain all of the position data of the
  * trajectory
  * @pre traj_elements & velocity_profile are pre-allocated up to at least
  * TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS
@@ -312,3 +319,24 @@ void static app_trajectory_planner_reversePositionTrajectoryDirection(
  */
 void app_trajectory_planner_generateVelocityTrajectory(
     PositionTrajectory_t* position_trajectory, VelocityTrajectory_t* velocity_trajectory);
+
+/**
+ * This function generates an orientation profile to follow the given orientation
+ * polynomial within the given kinematic constraints
+ *
+ * @pre traj_elements [out] is pre-allocated up the the limit specified by
+ * TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS. Will be modified to contain the orientation points
+ * of the trajectory and the angular velocity
+ *
+ * @param trajectory_parameters [in] The parameters that define the trajectory including XY path and orientation - along with kinematic constraints
+ *
+ * @param arc_length_parameterization [in] The arc length parameterization of the path
+ * polynomial
+ *
+ * @param arc_segment_length [in] The length of each segment in the trajectory
+ *
+ */
+//static void app_trajectory_planner_generateConstArclengthTrajectoryOrientations(
+//        OrientationTrajectoryElement_t traj_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
+//        FirmwareRobotTrajectoryParameters_t trajectory_parameters, arc_length_parameterization,
+//        const float arc_segment_length);

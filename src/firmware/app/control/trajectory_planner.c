@@ -25,6 +25,7 @@ app_trajectory_planner_generateConstantArcLengthPositionTrajectory(
         trajectory->path_parameters.max_allowable_linear_speed;
     const unsigned int num_segments = trajectory->path_parameters.num_segments;
     const Polynomial2dOrder3_t path = trajectory->path_parameters.path;
+    const Polynomial1dOrder3_t orientation_profile = trajectory->path_parameters.orientation_profile;
     float t_end                     = trajectory->path_parameters.t_end;
     float t_start                   = trajectory->path_parameters.t_start;
 
@@ -75,7 +76,7 @@ app_trajectory_planner_generateConstantArcLengthPositionTrajectory(
     // Now use numerical interpolation to get constant arc length segments for the
     // parameterization
     app_trajectory_planner_generateConstArclengthTrajectoryPositions(
-        traj_elements, path, num_segments, arc_length_parameterization,
+        traj_elements, path, orientation_profile,num_segments, arc_length_parameterization,
         arc_segment_length);
 
     // Generate the profile for the maximum physically valid velocity at each point on the
@@ -239,7 +240,7 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
 
 static void app_trajectory_planner_generateConstArclengthTrajectoryPositions(
     PositionTrajectoryElement_t traj_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
-    Polynomial2dOrder3_t path, const unsigned int num_elements,
+    Polynomial2dOrder3_t path, Polynomial1dOrder3_t orientation_profile, const unsigned int num_elements,
     ArcLengthParametrization_t arc_length_parameterization,
     const float arc_segment_length)
 {
@@ -252,6 +253,7 @@ static void app_trajectory_planner_generateConstArclengthTrajectoryPositions(
 
         // Get the X and Y position at the 't' value defined by the arc length
         traj_elements[i].position = shared_polynomial2d_getValueOrder3(path, t);
+        traj_elements[i].orientation = shared_polynomial1d_getValueOrder3(orientation_profile, t);
     }
 }
 
@@ -437,4 +439,23 @@ void app_trajectory_planner_generateVelocityTrajectory(
     velocity_elements[last_element_index].angular_velocity  = 0;
     velocity_elements[last_element_index].time =
         position_elements[last_element_index].time;
+}
+
+static void app_trajectory_planner_generateOrientationProfile(
+    PositionTrajectory_t position_trajectory)
+{
+    const unsigned int num_segments = position_trajectory.path_parameters.num_segments;
+    const unsigned int max_allowable_angular_acceleration = position_trajectory.path_parameters.max_allowable_angular_acceleration;
+    const unsigned int max_allowable_angular_speed = position_trajectory.path_parameters.max_allowable_angular_speed;
+
+    //initial
+
+    // Assume that the initial and final angular velocity of the robot are always zero
+    //position_trajectory.trajectory_elements[0].angular_velocity = 0;
+    // TODO Throw in the orientation trajectory into the position traj generation
+
+    // Generate the forwards-continuous angular velocity profile
+    // such that every forwards propagating point is within the acceleration
+    // and maximum speed constraints of the robot
+
 }
