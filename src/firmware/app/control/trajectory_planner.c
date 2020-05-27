@@ -446,14 +446,14 @@ void app_trajectory_planner_generateVelocityTrajectory(
         position_elements[last_element_index].time;
 }
 
-static void app_trajectory_planner_generateOrientationProfile(
-    PositionTrajectory_t position_trajectory)
+void app_trajectory_planner_generateOrientationProfile(
+    PositionTrajectory_t* position_trajectory)
 {
-    const unsigned int num_segments = position_trajectory.path_parameters.num_segments;
+    const unsigned int num_segments = position_trajectory->path_parameters.num_segments;
     const unsigned int max_allowable_angular_acceleration =
-        position_trajectory.path_parameters.max_allowable_angular_acceleration;
+        position_trajectory->path_parameters.max_allowable_angular_acceleration;
     const unsigned int max_allowable_angular_speed =
-        position_trajectory.path_parameters.max_allowable_angular_speed;
+        position_trajectory->path_parameters.max_allowable_angular_speed;
 
     /*
      * Here we have position as a function of 't' - but we can convert it to a function of
@@ -467,20 +467,20 @@ static void app_trajectory_planner_generateOrientationProfile(
 
     // Assume every orientation trajectory has an initial and final angular velocity of
     // zero.
-    position_trajectory.angular_speed_profile[0]                = 0;
-    position_trajectory.angular_speed_profile[num_segments - 1] = 0;
+    position_trajectory->angular_speed_profile[0]                = 0;
+    position_trajectory->angular_speed_profile[num_segments - 1] = 0;
 
     // Calculate the average velocity between each point
     for (unsigned int i = 1; i < num_segments; i++)
     {
         const float delta_orientation =
-            position_trajectory.trajectory_elements[i].orientation -
-            position_trajectory.trajectory_elements[i - 1].orientation;
-        const float delta_time = position_trajectory.trajectory_elements[i].time -
-                                 position_trajectory.trajectory_elements[i - 1].time;
+            position_trajectory->trajectory_elements[i].orientation -
+            position_trajectory->trajectory_elements[i - 1].orientation;
+        const float delta_time = position_trajectory->trajectory_elements[i].time -
+                                 position_trajectory->trajectory_elements[i - 1].time;
 
         // Calculate the average speed over the segment
-        const average_angular_speed                  = delta_orientation / delta_time;
-        position_trajectory.angular_speed_profile[i] = average_angular_speed;
+        const float average_angular_speed             = delta_orientation / delta_time;
+        position_trajectory->angular_speed_profile[i] = average_angular_speed;
     }
 }

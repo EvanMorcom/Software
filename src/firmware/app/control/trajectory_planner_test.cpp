@@ -1351,3 +1351,72 @@ TEST_F(TrajectoryPlannerTest, velocity_trajectory_curved_path_low_acceleration)
             velocity_trajectory.trajectory_elements[i].linear_velocity.y);
     }
 }
+
+TEST_F(TrajectoryPlannerTest,
+       check_orientation_trajectory_points_are_match_the_polynomial)
+{
+    Polynomial2dOrder3_t path = {
+        .x = {.coefficients = {2, 0, 1, 0}},
+        .y = {.coefficients = {1, 0, 1, 0}},
+
+    };
+    Polynomial1dOrder3_t orientation_profile = {
+        .coefficients = {0, 0, 0, 0},
+    };
+
+    FirmwareRobotTrajectoryParameters_t path_parameters;
+    path_parameters.path                = path;
+    path_parameters.orientation_profile = orientation_profile;
+    path_parameters.t_start             = 0;
+    path_parameters.t_end               = 1;
+    path_parameters.num_segments =
+        TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS;  // For tests the number of segments is
+    // arbitrary, so use the maximum possible
+    path_parameters.max_allowable_linear_acceleration = 3;
+    path_parameters.max_allowable_linear_speed        = 3;
+    path_parameters.initial_linear_speed              = 0;
+    path_parameters.final_linear_speed                = 0;
+
+    PositionTrajectoryElement_t const_arc_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
+    float speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
+    float angular_speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
+
+    PositionTrajectory_t trajectory = {.trajectory_elements   = const_arc_elements,
+                                       .path_parameters       = path_parameters,
+                                       .linear_speed_profile  = speed_profile,
+                                       .angular_speed_profile = angular_speed_profile};
+
+    TrajectoryPlannerGenerationStatus_t status =
+        app_trajectory_planner_generateConstantArcLengthPositionTrajectory(&trajectory);
+    EXPECT_EQ(OK, status);
+
+    // Create the parmeterization to contain the desired number of segments
+    CREATE_STATIC_ARC_LENGTH_PARAMETRIZATION(arc_length_param,
+                                             TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS);
+    // Get all of the points for the arc length parameterization (Not constant arc length
+    // segments)
+    shared_polynomial_getArcLengthParametrizationOrder3(
+        path_parameters.path, path_parameters.t_start, path_parameters.t_end,
+        arc_length_param);
+
+    app_trajectory_planner_generateOrientationProfile(&trajectory);
+    EXPECT_NEAR(
+        trajectory.trajectory_elements[path_parameters.num_segments - 1].position.x,
+        shared_polynomial2d_getValueOrder3(path_parameters.path, path_parameters.t_end).x,
+        0.01);
+    EXPECT_NEAR(
+        trajectory.trajectory_elements[path_parameters.num_segments - 1].position.y,
+        shared_polynomial2d_getValueOrder3(path_parameters.path, path_parameters.t_end).y,
+        0.01);
+
+    EXPECT_NEAR(
+        trajectory.trajectory_elements[0].position.x,
+        shared_polynomial2d_getValueOrder3(path_parameters.path, path_parameters.t_start)
+            .x,
+        0.01);
+    EXPECT_NEAR(
+        trajectory.trajectory_elements[0].position.x,
+        shared_polynomial2d_getValueOrder3(path_parameters.path, path_parameters.t_start)
+            .y,
+        0.01);
+}
