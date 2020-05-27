@@ -189,7 +189,8 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
  */
 static void app_trajectory_planner_generateConstArclengthTrajectoryPositions(
     PositionTrajectoryElement_t traj_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
-    Polynomial2dOrder3_t path, Polynomial1dOrder3_t orientation_profile,const unsigned int num_elements,
+    Polynomial2dOrder3_t path, Polynomial1dOrder3_t orientation_profile,
+    const unsigned int num_elements,
     ArcLengthParametrization_t arc_length_parameterization,
     const float arc_segment_length);
 
@@ -329,7 +330,8 @@ void app_trajectory_planner_generateVelocityTrajectory(
  * TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS. Will be modified to contain the orientation points
  * of the trajectory and the angular velocity
  *
- * @param trajectory_parameters [in] The parameters that define the trajectory including XY path and orientation - along with kinematic constraints
+ * @param trajectory_parameters [in] The parameters that define the trajectory including
+ * XY path and orientation - along with kinematic constraints
  *
  * @param arc_length_parameterization [in] The arc length parameterization of the path
  * polynomial
@@ -337,7 +339,8 @@ void app_trajectory_planner_generateVelocityTrajectory(
  * @param arc_segment_length [in] The length of each segment in the trajectory
  *
  */
-//static void app_trajectory_planner_generateConstArclengthTrajectoryOrientations(
-//        OrientationTrajectoryElement_t traj_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
-//        FirmwareRobotTrajectoryParameters_t trajectory_parameters, arc_length_parameterization,
-//        const float arc_segment_length);
+// static void app_trajectory_planner_generateConstArclengthTrajectoryOrientations(
+//        OrientationTrajectoryElement_t
+//        traj_elements[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
+//        FirmwareRobotTrajectoryParameters_t trajectory_parameters,
+//        arc_length_parameterization, const float arc_segment_length);
