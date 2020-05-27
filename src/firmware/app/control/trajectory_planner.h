@@ -58,7 +58,8 @@ typedef struct PositionTrajectory
 {
     PositionTrajectoryElement_t* trajectory_elements;
     FirmwareRobotTrajectoryParameters_t path_parameters;
-    float* speed_profile;
+    float* linear_speed_profile;
+    float* angular_speed_profile;
 } PositionTrajectory_t;
 
 // Struct that defines a single point on a velocity trajectory

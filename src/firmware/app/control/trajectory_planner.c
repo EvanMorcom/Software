@@ -76,7 +76,7 @@ app_trajectory_planner_generateConstantArcLengthPositionTrajectory(
     // Now use numerical interpolation to get constant arc length segments for the
     // parameterization
     app_trajectory_planner_generateConstArclengthTrajectoryPositions(
-        traj_elements, path, orientation_profile,num_segments, arc_length_parameterization,
+        traj_elements, path, orientation_profile, num_segments, arc_length_parameterization,
         arc_segment_length);
 
     // Generate the profile for the maximum physically valid velocity at each point on the
@@ -86,7 +86,7 @@ app_trajectory_planner_generateConstantArcLengthPositionTrajectory(
         max_allowable_speed_profile, path, num_segments, arc_length_parameterization,
         arc_segment_length, max_allowable_acceleration);
 
-    float* velocity_profile = trajectory->speed_profile;
+    float* velocity_profile = trajectory->linear_speed_profile;
     // First point on the velocity profile is always the current speed
     velocity_profile[0] = initial_speed;
 
@@ -154,8 +154,8 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
         variable_time_trajectory->trajectory_elements[0].time;
     constant_period_trajectory->trajectory_elements[0].position =
         variable_time_trajectory->trajectory_elements[0].position;
-    constant_period_trajectory->speed_profile[0] =
-        variable_time_trajectory->speed_profile[0];
+    constant_period_trajectory->linear_speed_profile[0] =
+        variable_time_trajectory->linear_speed_profile[0];
 
     // Keep track of the current time we are searching for in the constant arclength
     // trajectory
@@ -180,8 +180,8 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
             const float delta_y =
                 variable_time_trajectory->trajectory_elements[i].position.y -
                 variable_time_trajectory->trajectory_elements[i - 1].position.y;
-            const float delta_speed = variable_time_trajectory->speed_profile[i] -
-                                      variable_time_trajectory->speed_profile[i - 1];
+            const float delta_speed = variable_time_trajectory->linear_speed_profile[i] -
+                                      variable_time_trajectory->linear_speed_profile[i - 1];
 
             const float slope_x     = delta_x / delta_time;
             const float slope_y     = delta_y / delta_time;
@@ -201,13 +201,13 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
                 slope_speed *
                     (trajectory_time -
                      variable_time_trajectory->trajectory_elements[i - 1].time) +
-                variable_time_trajectory->speed_profile[i - 1];
+                variable_time_trajectory->linear_speed_profile[i - 1];
 
             constant_period_trajectory->trajectory_elements[time_periods].position.x =
                 interpolated_x;
             constant_period_trajectory->trajectory_elements[time_periods].position.y =
                 interpolated_y;
-            constant_period_trajectory->speed_profile[time_periods] = interpolated_speed;
+            constant_period_trajectory->linear_speed_profile[time_periods] = interpolated_speed;
             constant_period_trajectory->trajectory_elements[time_periods].time =
                 trajectory_time;
 
@@ -230,8 +230,8 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
         variable_time_trajectory->trajectory_elements[last_element_index].time;
     constant_period_trajectory->trajectory_elements[time_periods].position =
         variable_time_trajectory->trajectory_elements[last_element_index].position;
-    constant_period_trajectory->speed_profile[time_periods] =
-        variable_time_trajectory->speed_profile[last_element_index];
+    constant_period_trajectory->linear_speed_profile[time_periods] =
+        variable_time_trajectory->linear_speed_profile[last_element_index];
 
     // Set the new number of time periods
     constant_period_trajectory->path_parameters.num_segments = ++time_periods;
@@ -372,14 +372,14 @@ void app_trajectory_planner_reversePositionTrajectoryDirection(
 
         // Reverse the speed profile
         reverse_speed_profile[(num_segments - 1) - i] =
-            forwards_trajectory->speed_profile[i];
+            forwards_trajectory->linear_speed_profile[i];
     }
     // Copy reverse element array back
     for (unsigned int i = 0; i < num_segments; i++)
     {
         forwards_trajectory->trajectory_elements[i].position = reverse[i].position;
         forwards_trajectory->trajectory_elements[i].time     = reverse[i].time;
-        forwards_trajectory->speed_profile[i]                = reverse_speed_profile[i];
+        forwards_trajectory->linear_speed_profile[i]                = reverse_speed_profile[i];
     }
 }
 
@@ -404,10 +404,10 @@ void app_trajectory_planner_generateVelocityTrajectory(
         // The unit vector of the direction is 1/magnitide(vector) *vector
         const float x_velocity_component = (1 / sqrt(pow(delta_x, 2) + pow(delta_y, 2))) *
                                            delta_x *
-                                           position_trajectory->speed_profile[i];
+                                           position_trajectory->linear_speed_profile[i];
         const float y_velocity_component = (1 / sqrt(pow(delta_x, 2) + pow(delta_y, 2))) *
                                            delta_y *
-                                           position_trajectory->speed_profile[i];
+                                           position_trajectory->linear_speed_profile[i];
 
         // Copy data into the velocity element array
         velocity_elements[i].linear_velocity.x = x_velocity_component;
@@ -428,10 +428,10 @@ void app_trajectory_planner_generateVelocityTrajectory(
     const float vector_magnitude_inverse = (1 / sqrt(pow(delta_x, 2) + pow(delta_y, 2)));
     const float x_velocity_component =
         vector_magnitude_inverse * delta_x *
-        position_trajectory->speed_profile[last_element_index];
+        position_trajectory->linear_speed_profile[last_element_index];
     const float y_velocity_component =
         vector_magnitude_inverse * delta_y *
-        position_trajectory->speed_profile[last_element_index];
+        position_trajectory->linear_speed_profile[last_element_index];
 
     // Copy data into the velocity element array
     velocity_elements[last_element_index].linear_velocity.x = x_velocity_component;
@@ -448,14 +448,26 @@ static void app_trajectory_planner_generateOrientationProfile(
     const unsigned int max_allowable_angular_acceleration = position_trajectory.path_parameters.max_allowable_angular_acceleration;
     const unsigned int max_allowable_angular_speed = position_trajectory.path_parameters.max_allowable_angular_speed;
 
-    //initial
+    /*
+     * Here we have position as a function of 't' - but we can convert it to a function of time
+     * Assuming initial and final conditions of omega = 0, we can take the derivative the of orientation
+     * with respect to the time vector to give us the angular velocity as a function of time.
+     *
+     * In this case we will calculate the average angular velocity between segments, which will suffice for
+     * our discrete controller
+     */
 
-    // Assume that the initial and final angular velocity of the robot are always zero
-    //position_trajectory.trajectory_elements[0].angular_velocity = 0;
-    // TODO Throw in the orientation trajectory into the position traj generation
+    // Assume every orientation trajectory has an initial and final angular velocity of zero.
+    position_trajectory.angular_speed_profile[0] = 0;
+    position_trajectory.angular_speed_profile[num_segments-1] = 0;
 
-    // Generate the forwards-continuous angular velocity profile
-    // such that every forwards propagating point is within the acceleration
-    // and maximum speed constraints of the robot
+    // Calculate the average velocity between each point
+    for(unsigned int i = 1; i < num_segments; i++){
+        const float delta_orientation = position_trajectory.trajectory_elements[i].orientation -  position_trajectory.trajectory_elements[i-1].orientation;
+        const float delta_time = position_trajectory.trajectory_elements[i].time -  position_trajectory.trajectory_elements[i-1].time;
 
+        // Calculate the average speed over the segment
+        const average_angular_speed = delta_orientation/delta_time;
+        position_trajectory.angular_speed_profile[i] = average_angular_speed;
+    }
 }
