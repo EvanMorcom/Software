@@ -80,10 +80,10 @@ TEST_F(TrajectoryPlannerTest, check_end_points_match_path)
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(
         trajectory.x_position[path_parameters.num_elements - 1],
@@ -132,10 +132,10 @@ TEST_F(TrajectoryPlannerTest, check_trajectory_path_length_reverse_parameterizat
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
     float segment_length_sum = 0;
 
     // Test by checking the length between points
@@ -177,10 +177,10 @@ TEST_F(TrajectoryPlannerTest,
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(trajectory.x_position[path_parameters.num_elements - 1],
                 shared_polynomial2d_getValueOrder3(path, path_parameters.t_end).x, 0.01);
@@ -221,10 +221,10 @@ TEST_F(TrajectoryPlannerTest, check_trajectory_speed_profile_reverse_parameteriz
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
 
     float forwards_linear_speed[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
     float forwards_angular_speed[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
@@ -250,7 +250,7 @@ TEST_F(TrajectoryPlannerTest, check_trajectory_speed_profile_reverse_parameteriz
 
     status = app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
         path_parameters, &trajectory);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
 
     for (unsigned int i = 0; i < path_parameters.num_elements; i++)
     {
@@ -296,10 +296,10 @@ TEST_F(TrajectoryPlannerTest, dynamics_dont_exceed_maximums_curved_path)
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
 
     for (unsigned int i = 0; i < path_parameters.num_elements; i++)
     {
@@ -351,19 +351,19 @@ TEST_F(TrajectoryPlannerTest, test_get_constant_time_interpolation_straight_line
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
     const unsigned int variable_period_num_segments = path_parameters.num_elements;
 
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     PositionTrajectory_t const_interp_trajectory;
 
     status = app_trajectory_planner_generateConstantPeriodPositionTrajectory(
         0.001f, &path_parameters, &const_interp_trajectory);
 
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(trajectory.x_position[variable_period_num_segments - 1],
                 const_interp_trajectory.x_position[path_parameters.num_elements - 1],
@@ -408,11 +408,10 @@ TEST_F(TrajectoryPlannerTest, test_get_constant_time_iteration_curved_line)
     };
 
     PositionTrajectory_t trajectory;
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(status, OK);
-    EXPECT_EQ(OK, status);
+    EXPECT_EQ(status.status, OK);
     const unsigned int variable_period_num_segments = path_parameters.num_elements;
 
     PositionTrajectory_t const_interp_trajectory;
@@ -469,11 +468,11 @@ TEST_F(TrajectoryPlannerTest, test_get_constant_time_tion_too_many_elements)
     PositionTrajectory_t const_interp_trajectory;
 
     // Calculate the constant-tion period equivalent of the trajectory
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantPeriodPositionTrajectory(
             0.01f, &path_parameters, &const_interp_trajectory);
 
-    EXPECT_EQ(INTERPOLATION_ELEMENT_MAXED_OUT, status);
+    EXPECT_EQ(status.status, INTERPOLATION_ELEMENT_MAXED_OUT);
 }
 
 TEST_F(TrajectoryPlannerTest, test_assert_cannot_reach_final_velocity)
@@ -503,11 +502,11 @@ TEST_F(TrajectoryPlannerTest, test_assert_cannot_reach_final_velocity)
     PositionTrajectory_t trajectory;
 
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
 
-    EXPECT_EQ(FINAL_VELOCITY_TOO_HIGH, status);
+    EXPECT_EQ(status.status, FINAL_VELOCITY_TOO_HIGH);
 }
 
 // Set the initial velocity to a speed that is so high the robot cannot possible slow
@@ -538,11 +537,11 @@ TEST_F(TrajectoryPlannerTest, test_assert_initial_velocity_too_high)
 
     PositionTrajectory_t trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
 
-    EXPECT_EQ(INITIAL_VELOCITY_TOO_HIGH, status);
+    EXPECT_EQ(status.status, INITIAL_VELOCITY_TOO_HIGH);
 }
 
 TEST_F(TrajectoryPlannerTest, velocity_trajectory_straight_line_high_acceleration)
@@ -742,10 +741,10 @@ TEST_F(TrajectoryPlannerTest, test_generate_time_profile_no_angular_profile)
     app_trajectory_planner_impl_generate2dSegmentNodesAndLengths(
         path_parameters.t_start, path_parameters.t_end, path_parameters.path,
         path_parameters.num_elements, x_states, y_states, segment_lengths);
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_FLOAT_EQ(trajectory.time_profile[0], 0.0);
     for (unsigned int i = 1; i < path_parameters.num_elements; i++)
@@ -791,10 +790,10 @@ TEST_F(TrajectoryPlannerTest, test_generate_time_profile_linear_limiting_angular
     app_trajectory_planner_impl_generate2dSegmentNodesAndLengths(
         path_parameters.t_start, path_parameters.t_end, path_parameters.path,
         path_parameters.num_elements, x_states, y_states, segment_lengths);
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_FLOAT_EQ(trajectory.time_profile[0], 0.0);
     for (unsigned int i = 1; i < path_parameters.num_elements; i++)
@@ -840,10 +839,10 @@ TEST_F(TrajectoryPlannerTest, test_generate_time_profile_no_linear_profile)
         path_parameters.t_start, path_parameters.t_end,
         path_parameters.orientation_profile, path_parameters.num_elements, theta_states,
         segment_lengths);
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_FLOAT_EQ(trajectory.time_profile[0], 0.0);
     EXPECT_NEAR(trajectory.time_profile[1],
@@ -894,10 +893,10 @@ TEST_F(TrajectoryPlannerTest,
         path_parameters.t_start, path_parameters.t_end,
         path_parameters.orientation_profile, path_parameters.num_elements, theta_states,
         segment_lengths);
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_FLOAT_EQ(trajectory.time_profile[0], 0.0);
     EXPECT_NEAR(trajectory.time_profile[1],
@@ -941,10 +940,10 @@ TEST_F(TrajectoryPlannerTest, test_generate_velocity_trajectory_zeros)
     VelocityTrajectory_t velocity_trajectory;
     PositionTrajectory_t position_trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     app_trajectory_planner_generateVelocityTrajectory(
         &position_trajectory, path_parameters.num_elements, &velocity_trajectory);
 
@@ -983,10 +982,10 @@ TEST_F(TrajectoryPlannerTest,
     VelocityTrajectory_t velocity_trajectory;
     PositionTrajectory_t position_trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     app_trajectory_planner_generateVelocityTrajectory(
         &position_trajectory, path_parameters.num_elements, &velocity_trajectory);
 
@@ -1032,10 +1031,10 @@ TEST_F(TrajectoryPlannerTest,
     VelocityTrajectory_t velocity_trajectory;
     PositionTrajectory_t position_trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     app_trajectory_planner_generateVelocityTrajectory(
         &position_trajectory, path_parameters.num_elements, &velocity_trajectory);
 
@@ -1086,10 +1085,10 @@ TEST_F(TrajectoryPlannerTest,
     VelocityTrajectory_t velocity_trajectory;
     PositionTrajectory_t position_trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     app_trajectory_planner_generateVelocityTrajectory(
         &position_trajectory, path_parameters.num_elements, &velocity_trajectory);
 
@@ -1139,13 +1138,13 @@ TEST_F(TrajectoryPlannerTest,
     VelocityTrajectory_t velocity_trajectory;
     PositionTrajectory_t position_trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantPeriodPositionTrajectory(
             0.01f, &path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     app_trajectory_planner_generateVelocityTrajectory(
         &position_trajectory, path_parameters.num_elements, &velocity_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     for (unsigned int i = 0; i < path_parameters.num_elements; i++)
     {
@@ -1183,13 +1182,13 @@ TEST_F(
     VelocityTrajectory_t velocity_trajectory;
     PositionTrajectory_t position_trajectory;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantPeriodPositionTrajectory(
             0.01f, &path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     app_trajectory_planner_generateVelocityTrajectory(
         &position_trajectory, path_parameters.num_elements, &velocity_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     std::vector<Vector> directions =
         getDirectionVectorsFromPositionTrajectory(&position_trajectory, path_parameters);
@@ -1236,7 +1235,7 @@ TEST_F(TrajectoryPlannerTest,
     auto status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             path_parameters, &position_trajectory);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     // Check that the speeds meet the start and end conditions and did not accumulate
     EXPECT_NEAR(position_trajectory.linear_speed[0], path_parameters.initial_linear_speed,

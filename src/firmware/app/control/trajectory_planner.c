@@ -9,7 +9,7 @@
 #include "firmware/shared/math/polynomial_2d.h"
 #include "firmware/shared/math/tbots_math.h"
 
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
     FirmwareRobotPathParameters_t path_parameters,
     PositionTrajectory_t* position_trajectory)
@@ -53,11 +53,11 @@ app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
         path_parameters.path, num_elements, t_start, t_end, max_linear_acceleration,
         max_linear_speed, max_allowable_speed_profile);
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
             final_linear_speed, linear_segment_lengths, max_allowable_speed_profile,
             max_linear_acceleration, initial_linear_speed, num_elements, linear_speed);
-    if (status != OK)
+    if (status.status != OK)
     {
         return status;
     }
@@ -75,7 +75,7 @@ app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
     status = app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
         final_angular_speed, angular_segment_lengths, max_allowable_speed_profile,
         max_angular_acceleration, initial_angular_speed, num_elements, angular_speed);
-    if (status != OK)
+    if (status.status != OK)
     {
         return status;
     }
@@ -84,7 +84,7 @@ app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
     status = app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
         initial_linear_speed, linear_segment_lengths, max_linear_acceleration,
         num_elements, linear_speed);
-    if (status != OK)
+    if (status.status != OK)
     {
         return status;
     }
@@ -92,7 +92,7 @@ app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
     status = app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
         initial_angular_speed, angular_segment_lengths, max_angular_acceleration,
         num_elements, angular_speed);
-    if (status != OK)
+    if (status.status != OK)
     {
         return status;
     }
@@ -112,10 +112,10 @@ app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
         angular_time_profile, (float)num_elements, linear_speed, angular_speed,
         position_trajectory->time_profile);
 
-    return OK;
+    return status;
 }
 
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_generateConstantPeriodPositionTrajectory(
     float interpolation_period, FirmwareRobotPathParameters_t* path_parameters,
     PositionTrajectory_t* constant_period_trajectory)
@@ -123,11 +123,11 @@ app_trajectory_planner_generateConstantPeriodPositionTrajectory(
     PositionTrajectory_t variable_time_trajectory;
 
     // Generate the position trajectory
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_generateConstantParameterizationPositionTrajectory(
             *path_parameters, &variable_time_trajectory);
 
-    if (status != OK)
+    if (status.status != OK)
     {
         return status;
     }
@@ -136,15 +136,15 @@ app_trajectory_planner_generateConstantPeriodPositionTrajectory(
         &variable_time_trajectory, interpolation_period, &path_parameters->num_elements,
         constant_period_trajectory);
 
-    if (status != OK)
+    if (status.status != OK)
     {
         return status;
     }
 
-    return OK;
+    return status;
 }
 
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
     PositionTrajectory_t* variable_period_trajectory, float interpolation_period,
     unsigned int* num_elements, PositionTrajectory_t* constant_period_trajectory)
@@ -220,7 +220,12 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
 
     if (time_periods == TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS)
     {
-        return INTERPOLATION_ELEMENT_MAXED_OUT;
+        // There is no magnitude associated with using up too many array elements
+        const float magnitude_of_error                        = 1.0f;
+        TrajectoryPlannerGenerationStatusAndFeedback_t status = {
+            .magnitude_of_error = magnitude_of_error,
+            .status             = INTERPOLATION_ELEMENT_MAXED_OUT};
+        return status;
     }
 
     const unsigned int last_element_index = *num_elements - 1;
@@ -240,8 +245,10 @@ app_trajectory_planner_interpolateConstantPeriodPositionTrajectory(
         variable_period_trajectory->time_profile[last_element_index];
 
     // Set the new number of time periods
-    *num_elements = ++time_periods;
-    return OK;
+    *num_elements                                         = ++time_periods;
+    TrajectoryPlannerGenerationStatusAndFeedback_t status = {.magnitude_of_error = 0,
+                                                             .status             = OK};
+    return status;
 }
 
 void app_trajectory_planner_generateVelocityTrajectory(

@@ -174,7 +174,7 @@ void app_trajectory_planner_impl_modifySpeedsToMatchLongestSegmentDuration(
     }
 }
 
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
     float final_speed, float segment_lengths[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
     float max_allowable_speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
@@ -202,14 +202,19 @@ app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
 
     if (speeds[num_elements - 1] < final_speed)
     {
-        return FINAL_VELOCITY_TOO_HIGH;
+        const float speed_difference = speeds[num_elements - 1] - final_speed;
+        TrajectoryPlannerGenerationStatusAndFeedback_t status = {
+            .magnitude_of_error = speed_difference, .status = FINAL_VELOCITY_TOO_HIGH};
+        return status;
     }
 
-    speeds[num_elements - 1] = final_speed;
-    return OK;
+    speeds[num_elements - 1]                              = final_speed;
+    TrajectoryPlannerGenerationStatusAndFeedback_t status = {.magnitude_of_error = 0.0f,
+                                                             .status             = OK};
+    return status;
 }
 
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
     float initial_speed, float segment_lengths[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
     float max_allowable_acceleration, unsigned int num_segments,
@@ -235,13 +240,15 @@ app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
     // Check that we are able to decelerate fast enough that the initial velocity allows
     // for the path to be followed
     // Note: The initial speed of an angular profile is always assumed to be zero
-    TrajectoryPlannerGenerationStatus_t status = OK;
-
     if (speeds[0] < initial_speed)
     {
-        speeds[0] = initial_speed;
-        status    = INITIAL_VELOCITY_TOO_HIGH;
+        const float speed_difference                          = speeds[0] - initial_speed;
+        speeds[0]                                             = initial_speed;
+        TrajectoryPlannerGenerationStatusAndFeedback_t status = {
+            .magnitude_of_error = speed_difference, .status = INITIAL_VELOCITY_TOO_HIGH};
+        return status;
     }
-
+    TrajectoryPlannerGenerationStatusAndFeedback_t status = {.magnitude_of_error = 0.0f,
+                                                             .status             = OK};
     return status;
 }

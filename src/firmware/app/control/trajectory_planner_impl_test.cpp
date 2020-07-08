@@ -268,14 +268,14 @@ TEST(TrajectoryPlannerImplTest, test_forwards_continuity_varying_segment_length)
     segment_lengths[2] = 3.0;
     segment_lengths[3] = 4.0;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
             path_parameters.final_linear_speed, segment_lengths,
             max_allowable_speed_profile,
             path_parameters.max_allowable_linear_acceleration,
             path_parameters.initial_linear_speed, path_parameters.num_elements,
             speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(speed_profile[0], path_parameters.initial_linear_speed, 0.0001);
     EXPECT_NEAR(speed_profile[1], sqrt(3), 0.00001);
@@ -314,14 +314,14 @@ TEST(TrajectoryPlannerImplTest, test_forwards_continuity_final_velocity_too_high
 
 
     float speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
             path_parameters.final_linear_speed, segment_lengths,
             max_allowable_speed_profile,
             path_parameters.max_allowable_linear_acceleration,
             path_parameters.initial_linear_speed, path_parameters.num_elements,
             speed_profile);
-    EXPECT_EQ(status, FINAL_VELOCITY_TOO_HIGH);
+    EXPECT_EQ(status.status, FINAL_VELOCITY_TOO_HIGH);
 }
 
 TEST(TrajectoryPlannerImplTest, test_forwards_continuity_varying_segment_length_angular)
@@ -347,12 +347,12 @@ TEST(TrajectoryPlannerImplTest, test_forwards_continuity_varying_segment_length_
     path_parameters.num_elements                       = num_segments;
 
     float speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
             0.0f, segment_lengths, max_allowable_speed_profile,
             path_parameters.max_allowable_angular_acceleration, 0.0f,
             path_parameters.num_elements, speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
     EXPECT_NEAR(speed_profile[0], 0, 0.0001);
     EXPECT_NEAR(speed_profile[1], sqrt(2), 0.00001);
     EXPECT_NEAR(speed_profile[2], sqrt(6), 0.00001);
@@ -384,12 +384,12 @@ TEST(TrajectoryPlannerImplTest,
 
     float speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS];
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
             0.0f, segment_lengths_angular, max_allowable_speed_profile,
             path_parameters.max_allowable_angular_acceleration, 0.0f,
             path_parameters.num_elements, speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(speed_profile[0], 0, 0.0001);
     EXPECT_NEAR(speed_profile[1], 1, 0.00001);
@@ -425,12 +425,12 @@ TEST(TrajectoryPlannerImplTest,
     speed_profile[3] = 1;
 
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
             path_parameters.initial_linear_speed, segment_lengths_linear,
             path_parameters.max_allowable_linear_acceleration,
             path_parameters.num_elements, speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(speed_profile[0], sqrt(7), 0.0001);
     EXPECT_NEAR(speed_profile[1], sqrt(5), 0.0001);
@@ -463,12 +463,12 @@ TEST(TrajectoryPlannerImplTest, test_backwards_continuity_variable_segment_lengt
     speed_profile[2] = 10;
     speed_profile[3] = 1;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
             path_parameters.initial_linear_speed, segment_lengths_linear,
             path_parameters.max_allowable_linear_acceleration,
             path_parameters.num_elements, speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(speed_profile[0], sqrt(11), 0.0001);
     EXPECT_NEAR(speed_profile[1], 3, 0.0001);
@@ -504,13 +504,13 @@ TEST(
     speed_profile[2] = 10;
     speed_profile[3] = 1;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
             path_parameters.initial_linear_speed, segment_lengths_linear,
             path_parameters.max_allowable_linear_acceleration,
             path_parameters.num_elements, speed_profile);
 
-    EXPECT_EQ(status, INITIAL_VELOCITY_TOO_HIGH);
+    EXPECT_EQ(status.status, INITIAL_VELOCITY_TOO_HIGH);
 }
 
 TEST(TrajectoryPlannerImplTest,
@@ -536,12 +536,12 @@ TEST(TrajectoryPlannerImplTest,
     speed_profile[3] = 0;
 
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
             0.0f, segment_lengths_angular,
             path_parameters.max_allowable_angular_acceleration,
             path_parameters.num_elements, speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(speed_profile[0], 0, 0.0001);
     EXPECT_NEAR(speed_profile[1], sqrt(4), 0.0001);
@@ -571,11 +571,11 @@ TEST(TrajectoryPlannerImplTest,
     speed_profile[2] = 10;
     speed_profile[3] = 0;
 
-    TrajectoryPlannerGenerationStatus_t status =
+    TrajectoryPlannerGenerationStatusAndFeedback_t status =
         app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
             0.0f, segment_lengths, path_parameters.max_allowable_angular_acceleration,
             path_parameters.num_elements, speed_profile);
-    EXPECT_EQ(status, OK);
+    EXPECT_EQ(status.status, OK);
 
     EXPECT_NEAR(speed_profile[0], 0, 0.0001);
     EXPECT_NEAR(speed_profile[1], 3, 0.0001);

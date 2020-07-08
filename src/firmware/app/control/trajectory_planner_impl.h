@@ -86,9 +86,10 @@ void app_trajectory_planner_impl_generate2dSegmentNodesAndLengths(
  * backwards continuous. This array is of length num_elements. The units of output are
  * consistent with the input parameters.
  *
- * @return A status indicating whether or not modification was successful
+ * @return A status indicating whether or not modification was successful and the
+ * magnitude of the error if it exists
  */
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
     float initial_speed, float segment_lengths[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
     float max_allowable_acceleration, unsigned int num_segments,
@@ -126,9 +127,10 @@ app_trajectory_planner_impl_modifySpeedsToBeBackwardsContinuous(
  * max_allowable_speed_profile that limits the speed at each point on the trajectory.
  * Units are consistent with the input parameters. This array if of length num_elements.
  *
- * @return A status indicating whether or not generation was successful
+ * @return A status indicating whether or not generation was successful and the magnitude
+ * of the error if it exists
  */
-TrajectoryPlannerGenerationStatus_t
+TrajectoryPlannerGenerationStatusAndFeedback_t
 app_trajectory_planner_impl_createForwardsContinuousSpeedProfile(
     float final_speed, float segment_lengths[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
     float max_allowable_speed_profile[TRAJECTORY_PLANNER_MAX_NUM_ELEMENTS],
